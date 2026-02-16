@@ -1,32 +1,63 @@
 import requests
 import os
-from parser import load_template, check_pattern
+import json
+from parser import load_template, match_pattern
 
-TEMPLATE_DIR = "../templates"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "../templates")
+TARGET_FILE = os.path.join(BASE_DIR, "../data/sample_targets.txt")
 
 def fetch_url(url):
     try:
         response = requests.get(url, timeout=5)
         return response.text
-    except Exception as e:
-        print(f"Error fetching {url}: {e}")
+    except Exception:
         return None
 
+def load_targets():
+    with open(TARGET_FILE, "r") as f:
+        return [line.strip() for line in f if line.strip()]
+
 def evaluate_templates(content):
-    for file in os.listdir(TEMPLATE_DIR):
-        template_path = os.path.join(TEMPLATE_DIR, file)
+    findings = []
+
+    for filename in os.listdir(TEMPLATE_DIR):
+        if not filename.endswith(".yaml"):
+            continue
+
+        template_path = os.path.join(TEMPLATE_DIR, filename)
         template = load_template(template_path)
 
         for request in template.get("requests", []):
             for matcher in request.get("matchers", []):
                 pattern = matcher.get("pattern")
-                if pattern and check_pattern(content, pattern):
-                    print(f"[!] Potential Match: {template['id']}")
-                    print(f"    Severity: {template['info']['severity']}")
-                    print(f"    Description: {template['info']['description']}")
+                if pattern and match_pattern(content, pattern):
+                    findings.append({
+                        "template_id": template.get("id"),
+                        "severity": template.get("info", {}).get("severity"),
+                        "description": template.get("info", {}).get("description")
+                    })
+
+    return findings
+
+def main():
+    targets = load_targets()
+
+    for target in targets:
+        print(f"\nScanning: {target}")
+        content = fetch_url(target)
+
+        if not content:
+            print("  Unable to fetch target.")
+            continue
+
+        findings = evaluate_templates(content)
+
+        if findings:
+            print("  Findings:")
+            print(json.dumps(findings, indent=4))
+        else:
+            print("  No exposures detected.")
 
 if __name__ == "__main__":
-    url = "http://example.com"
-    content = fetch_url(url)
-    if content:
-        evaluate_templates(content)
+    main()
