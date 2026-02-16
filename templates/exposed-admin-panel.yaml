@@ -1,0 +1,12 @@
+id: exposed-admin-panel
+info:
+  severity: high
+  description: Detect exposed admin login panels
+  cve: N/A
+  cvss_score: 6.5
+requests:
+  - method: GET
+    path: /
+    matchers:
+      - type: regex
+        pattern: "admin|login|dashboard"
