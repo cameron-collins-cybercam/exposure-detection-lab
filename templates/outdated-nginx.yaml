@@ -2,7 +2,8 @@ id: outdated-nginx
 info:
   severity: medium
   description: Detect outdated nginx versions
-  reference: CVE-2019-20372
+  cve: CVE-2019-20372
+  cvss_score: 7.5
 requests:
   - method: GET
     path: /
