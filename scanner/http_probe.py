@@ -33,9 +33,11 @@ def evaluate_templates(content):
                 pattern = matcher.get("pattern")
                 if pattern and match_pattern(content, pattern):
                     findings.append({
-                        "template_id": template.get("id"),
-                        "severity": template.get("info", {}).get("severity"),
-                        "description": template.get("info", {}).get("description")
+                     "template_id": template.get("id"),
+                     "severity": template.get("info", {}).get("severity"),
+                     "description": template.get("info", {}).get("description"),
+                     "cve": template.get("info", {}).get("cve"),
+                     "cvss_score": template.get("info", {}).get("cvss_score")
                     })
 
     return findings
