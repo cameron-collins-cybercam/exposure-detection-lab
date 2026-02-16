@@ -10,7 +10,8 @@ TARGET_FILE = os.path.join(BASE_DIR, "../data/sample_targets.txt")
 def fetch_url(url):
     try:
         response = requests.get(url, timeout=5)
-        return response.text
+        return return response.text, response.headers
+
     except Exception:
         return None
 
@@ -47,7 +48,18 @@ def main():
 
     for target in targets:
         print(f"\nScanning: {target}")
-        content = fetch_url(target)
+        
+        server = headers.get("Server", "Unknown")
+        print(f"  Server Banner: {server}")
+
+        result = fetch_url(target)
+        if not result:
+            print("  Unable to fetch target.")
+            continue
+                    
+
+        content, headers = result
+
 
         if not content:
             print("  Unable to fetch target.")
